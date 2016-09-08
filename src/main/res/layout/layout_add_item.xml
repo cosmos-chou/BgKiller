@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <ImageView
+        android:id="@+id/add_item_icon"
+        android:layout_width="60dp"
+        android:layout_height="80dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:scaleType="centerInside" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingEnd="60dp"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="70dp">
+
+        <TextView
+            android:id="@+id/add_item_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:lines="1"
+            android:gravity="left"
+            android:ellipsize="end"
+            android:textSize="17sp"
+            android:paddingEnd="38dp"
+            />
+
+        <TextView
+            android:id="@+id/add_item_packagename"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="20dp"
+            android:textColor="#ffd8d8d8"
+            android:textSize="14sp"
+            android:lines="1"
+            android:gravity="left"
+            android:ellipsize="end"/>
+    </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/add_item_select"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingRight="10dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:clickable="false"
+        android:focusable="false"
+        android:duplicateParentState="true"
+        android:visibility="gone"/>
+
+    <Spinner
+        android:id="@+id/add_item_enable_types"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:entries="@array/enable_types"
+        android:layout_alignParentRight="true"
+        android:textAlignment="viewEnd"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="20dp"
+        >
+    </Spinner>
+</RelativeLayout>

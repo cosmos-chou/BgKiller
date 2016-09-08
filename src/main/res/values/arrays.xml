@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="enable_types">
+        <item>@string/menu_none</item>
+        <item>@string/menu_manual</item>
+        <item>@string/menu_auto</item>
+    </string-array>
+
+    <string-array name="delay_mills_labels">
+        <item>Off</item>
+        <item>1 Minute Later</item>
+        <item>3 Minutes Later</item>
+        <item>5 Minutes Later</item>
+        <item>10 Minutes Later</item>
+    </string-array>
+
+    <string-array name="delay_mills_values">
+        <item>0</item>
+        <item>1</item>
+        <item>3</item>
+        <item>5</item>
+        <item>10</item>
+    </string-array>
+</resources>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:defaultValue="0"
+        android:entries="@array/delay_mills_labels"
+        android:entryValues="@array/delay_mills_values"
+        android:key="key_process_delayed"
+        android:title="@string/settings_label_process_delayed"
+        android:persistent="true"/>
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="key_auto_enable_ss"
+        android:persistent="true"
+        android:title="@string/settings_label_auto_enable_ss" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="key_until_present"
+        android:persistent="true"
+        android:title="@string/settings_label_process_until_user_present" />
+    <MultiSelectListPreference
+        android:title="Unblocked Wifi List"
+        android:persistent="true"
+        android:key="unblocked_wifi_list"
+        android:dependency="key_auto_enable_ss"/>
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="show_notification"
+        android:persistent="true"
+        android:title="@string/settings_label_show_notification" />
+</PreferenceScreen>
