@@ -45,7 +45,7 @@ public class BgKillerReceiver extends BroadcastReceiver{
         } else if (Intent.ACTION_USER_PRESENT.equals(action)
                 || Intent.ACTION_SCREEN_ON.equals(action)) { // 解锁
             enable = new ArrayList<>(autoDisabledSet);
-            switchSS = enable.contains(Settings.getInstance().getSSPackageName()) && Settings.getInstance().getAutoEnableSS();
+            switchSS = /*enable.contains(Settings.getInstance().getSSPackageName()) &&*/ Settings.getInstance().getAutoEnableSS();
         }else {
             return;
         }
