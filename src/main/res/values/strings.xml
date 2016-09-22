@@ -16,6 +16,9 @@
     <string name="settings_label_auto_enable_ss">Auto Enable ShadowSocks</string>
     <string name="settings_label_process_until_user_present">Auto Enable Until Unlock Screen</string>
     <string name="settings_label_show_notification">Show Notification</string>
+    <string name="settings_label_auto_switch_network">Auto Switch Network</string>
+    <string name="settings_label_auto_switch_wifi">Auto Switch Wifi</string>
+    <string name="settings_label_debug_mode">Debug Mode</string>
 
     <string name="notification_text">Click To Launch Main</string>
 </resources>

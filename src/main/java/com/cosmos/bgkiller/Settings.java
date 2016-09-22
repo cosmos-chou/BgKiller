@@ -19,9 +19,15 @@ public final class Settings {
 
     public static final String KEY_AUTO_ENABLE_SS = "key_auto_enable_ss";
 
-    public static final String KEY_ENABLE_UNTIL_USER_PRESENT = "key_until_present";
-
     public static final String KEY_SHOW_NOTIFICATION = "show_notification";
+
+    public static final String KEY_AUTO_SWITCH_NETWORK = "auto_switch_network";
+
+    public static final String KEY_AUTO_SWITCH_WIFI = "auto_switch_wifi";
+
+    public static final String KEY_DEBUG_MODE = "debug_mode";
+
+    public static final String KEY_WIFI_STATE = "wifi_state";
 
     private static final Settings INSTANCE = new Settings();
 
@@ -56,15 +62,31 @@ public final class Settings {
         return mPref.getBoolean(KEY_AUTO_ENABLE_SS, true);
     }
 
-    public boolean enableUntilUserPresent(){
-        return mPref.getBoolean(KEY_ENABLE_UNTIL_USER_PRESENT, true);
-    }
-
     public Set<String> getUnBlockedWifiList(){
         return mPref.getStringSet(KEY_UN_BLOCKED_WIFI_LIST, Collections.EMPTY_SET);
     }
 
     public boolean showNotification(){
         return mPref.getBoolean(KEY_SHOW_NOTIFICATION, true);
+    }
+
+    public boolean autoSwitchNetwork(){
+        return mPref.getBoolean(KEY_AUTO_SWITCH_NETWORK, true);
+    }
+
+    public boolean autoSwitchWifi(){
+        return mPref.getBoolean(KEY_AUTO_SWITCH_WIFI, true);
+    }
+
+    public boolean debugMode(){
+        return mPref.getBoolean(KEY_DEBUG_MODE, false);
+    }
+
+    public void saveWifiState(boolean wifiEnable){
+        mPref.edit().putBoolean(KEY_WIFI_STATE, wifiEnable);
+    }
+
+    public boolean isWifiEnableBefore(){
+        return mPref.getBoolean(KEY_WIFI_STATE, false);
     }
 }

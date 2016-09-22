@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="debug_mode"
+        android:persistent="true"
+        android:title="@string/settings_label_debug_mode" />
+
     <ListPreference
         android:defaultValue="0"
         android:entries="@array/delay_mills_labels"
@@ -9,22 +16,28 @@
         android:persistent="true"/>
     <SwitchPreference
         android:defaultValue="true"
+        android:key="show_notification"
+        android:persistent="true"
+        android:title="@string/settings_label_show_notification" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="auto_switch_network"
+        android:persistent="true"
+        android:title="@string/settings_label_auto_switch_network" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="auto_switch_wifi"
+        android:persistent="true"
+        android:dependency="auto_switch_network"
+        android:title="@string/settings_label_auto_switch_wifi" />
+    <SwitchPreference
+        android:defaultValue="true"
         android:key="key_auto_enable_ss"
         android:persistent="true"
         android:title="@string/settings_label_auto_enable_ss" />
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="key_until_present"
-        android:persistent="true"
-        android:title="@string/settings_label_process_until_user_present" />
     <MultiSelectListPreference
         android:title="Unblocked Wifi List"
         android:persistent="true"
         android:key="unblocked_wifi_list"
         android:dependency="key_auto_enable_ss"/>
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="show_notification"
-        android:persistent="true"
-        android:title="@string/settings_label_show_notification" />
 </PreferenceScreen>

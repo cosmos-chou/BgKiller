@@ -38,7 +38,6 @@ public class KillerSettings extends PreferenceActivity {
 
         mWifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
         List<WifiConfiguration> savedWifis = mWifiManager.getConfiguredNetworks();
-        Utils.logD("scan result: " + savedWifis);
         List<String> entries = new ArrayList<>();
         List<String> entrieValues = new ArrayList<>();
         if(savedWifis != null && savedWifis.size() > 0){
@@ -48,7 +47,6 @@ public class KillerSettings extends PreferenceActivity {
             }
         }
 
-        Utils.logD("wifi saved result: " + entries + "| "  + entrieValues);
         MultiSelectListPreference multiSelectListPreference = mMultiSelectListPreference;
         multiSelectListPreference.setEnabled(mWifiManager.isWifiEnabled() && entries.size() > 0);
         multiSelectListPreference.setEntries(entries.toArray(new String[entries.size()]));

@@ -1,6 +1,7 @@
 package com.cosmos.bgkiller;
 
 import android.app.AlarmManager;
+import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -22,6 +23,7 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 
 import com.cosmos.bgkiller.utils.Utils;
+import com.cosmos.bgkiller.xposed.NetworkAutoSwitcher;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,9 +41,11 @@ public class KillerCore extends Service {
     public static final String KEY_ENABLE_SS = "enable_ss";
     public static final String KEY_COMMAND = "command";
 
+
     public static final int MSG_HANDLE = 10000;
     public static final int MSG_ENABLE_SS = 10001;
     public static final int MSG_START_COMMAND = 10002;
+    public static final int MSG_SET_NETWORK_TYPE = 10003;
 
 
     public static final int COMMAND_DELAYED = 1 << 3;
@@ -77,7 +81,6 @@ public class KillerCore extends Service {
         mThread.start();
         mProcessHandler = new KillerHandler(mThread.getLooper());
         mPowerManager = (PowerManager) BgKillerApplication.getsInstance().getSystemService(POWER_SERVICE);
-        initAlarmProcessAction();
         registerReceiver();
     }
 
@@ -99,11 +102,6 @@ public class KillerCore extends Service {
         startForeground(1000, notification);
     }
 
-
-    private void initAlarmProcessAction() {
-        mAlarmProcessIntent = new Intent(this, KillerCore.class);
-        mAlarmProcessIntent.putExtra(KEY_COMMAND, COMMAND_ALARM_PROCESS);
-    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -140,6 +138,8 @@ public class KillerCore extends Service {
             mReceiver = new BgKillerReceiver();
             IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
             filter.addAction(Intent.ACTION_SCREEN_ON);
+            filter.addAction(Intent.ACTION_USER_PRESENT);
+            filter.addAction(NetworkAutoSwitcher.ACTION_SCREEN_LOCKED_STATUS_CHANGE);
             registerReceiver(mReceiver, filter);
         }
     }
@@ -237,9 +237,14 @@ public class KillerCore extends Service {
             int what = msg.what;
             switch (what) {
                 case MSG_HANDLE:
-                    Utils.settingsPackage(mPendingEnabledPackages.toArray(new String[mPendingEnabledPackages.size()]), mPendingDisabledPackages.toArray(new String[mPendingDisabledPackages.size()]));
+                    PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+                    String[] disableArrays  = null;
+                    if(!pm.isInteractive()){
+                        disableArrays = mPendingDisabledPackages.toArray(new String[mPendingDisabledPackages.size()]);
+                        mPendingDisabledPackages.clear();
+                    }
+                    Utils.settingsPackage(mPendingEnabledPackages.toArray(new String[mPendingEnabledPackages.size()]), disableArrays);
                     mPendingEnabledPackages.clear();
-                    mPendingDisabledPackages.clear();
                     break;
                 case MSG_ENABLE_SS:
                     Set<String> ignoreSet = Settings.getInstance().getUnBlockedWifiList();
@@ -259,7 +264,7 @@ public class KillerCore extends Service {
                     long timeout = mSettings.getProcessDelay();
                     int command = msg.arg1;
                     boolean delayed = (command & COMMAND_DELAYED) != 0 && timeout != 0;
-
+                    Utils.logD("MSG_START_COMMAND: " + command + " " + delayed);
                     if(command != COMMAND_ALARM_PROCESS){
                         syncList(intent.getStringArrayListExtra(KEY_PACKAGES_LIST_ENABLE), true);
                         syncList(intent.getStringArrayListExtra(KEY_PACKAGES_LIST_DISABLE), false);
@@ -277,19 +282,48 @@ public class KillerCore extends Service {
                     AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
                     removeMessages(MSG_ENABLE_SS);
                     removeMessages(MSG_HANDLE);
+                    mAlarmProcessIntent = new Intent(intent);
+
+                    mAlarmProcessIntent.putExtra(KEY_COMMAND, COMMAND_ALARM_PROCESS);
                     PendingIntent pendingIntent = PendingIntent.getService(KillerCore.this, 0, mAlarmProcessIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                     am.cancel(pendingIntent);
+                    boolean enableSS = intent.getBooleanExtra(KEY_ENABLE_SS, false);
+                    boolean changeNetWork = intent.getIntExtra(NetworkAutoSwitcher.KEY_TYPE, -1) != -1;
+                    if (delayed && (notEmpty || enableSS || changeNetWork)) {
+                        am.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + Settings.getInstance().getProcessDelay(), pendingIntent);
+                        break;
+                    }
                     if (notEmpty) {
-                        if (delayed) {
-                            am.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + Settings.getInstance().getProcessDelay(), pendingIntent);
-                            break;
-                        }
                         mProcessHandler.sendEmptyMessage(MSG_HANDLE);
-                        if (intent.getBooleanExtra(KEY_ENABLE_SS, false)) {
-                            mProcessHandler.sendEmptyMessage(MSG_ENABLE_SS);
-                        }
+                    }
+                    if (enableSS) {
+                        mProcessHandler.sendEmptyMessage(MSG_ENABLE_SS);
+                    }
+                    if(changeNetWork){
+                        Message.obtain(mProcessHandler, MSG_SET_NETWORK_TYPE, intent.getIntExtra(NetworkAutoSwitcher.KEY_TYPE, -1), 0).sendToTarget();
                     }
                     break;
+                case MSG_SET_NETWORK_TYPE:
+                    PowerManager pm1 = (PowerManager) getSystemService(POWER_SERVICE);
+                    Utils.logD("MSG_SET_NETWORK_TYPE: " + pm1.isInteractive() + "  " + msg.arg1);
+                    if(!pm1.isInteractive() || msg.arg1 == 22) {
+                        Intent intent3 = new Intent(NetworkAutoSwitcher.ACTION_CHANGE_NETWORK_TYPE);
+                        intent3.putExtra(NetworkAutoSwitcher.KEY_TYPE, msg.arg1);
+                        sendBroadcast(intent3);
+                        if(Settings.getInstance().autoSwitchWifi()){
+                            WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
+                            boolean shouldEnable = 22 == msg.arg1;
+                            boolean current = wifi.isWifiEnabled();
+                            if(!shouldEnable){
+                                Settings.getInstance().saveWifiState(current);
+                            }else{
+                                shouldEnable = Settings.getInstance().isWifiEnableBefore();
+                            }
+                            if(shouldEnable != current){
+                                wifi.setWifiEnabled(shouldEnable);
+                            }
+                        }
+                    }
                 default:
                     break;
             }

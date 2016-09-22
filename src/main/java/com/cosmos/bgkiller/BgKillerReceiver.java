@@ -4,12 +4,14 @@ import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
 
 import com.cosmos.bgkiller.BgKillerApplication;
 import com.cosmos.bgkiller.utils.Utils;
+import com.cosmos.bgkiller.xposed.NetworkAutoSwitcher;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,9 +24,7 @@ public class BgKillerReceiver extends BroadcastReceiver{
     @Override
     public void onReceive(Context context, Intent intent) {
         KeyguardManager km = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
-
-        if(intent == null || (!Settings.getInstance().enableUntilUserPresent() && Intent.ACTION_USER_PRESENT.equals(intent.getAction() ))
-            || (( km.isDeviceLocked() && Settings.getInstance().enableUntilUserPresent())&& Intent.ACTION_SCREEN_ON.equals(intent.getAction() ))){
+        if(intent == null){
             return ;
         }
         HashSet<String> autoDisabledSet = new HashSet<>();
@@ -34,23 +34,29 @@ public class BgKillerReceiver extends BroadcastReceiver{
         ArrayList<String> disable = null;
         ArrayList<String> enable = null;
         String action = intent.getAction();
-        Utils.logD("onReceive " + action);
-
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        Utils.logD("onReceive " + action+ "  " + pm.isInteractive());
         boolean switchSS = false;
         int command = 0;
-        if (Intent.ACTION_SCREEN_OFF.equals(action)) { // 锁屏
+        int type = -1;
+        if (NetworkAutoSwitcher.ACTION_SCREEN_LOCKED_STATUS_CHANGE.equals(action)) { // 锁屏
             disable = new ArrayList<>(autoDisabledSet);
             disable.addAll(manualDisabledSet);
             command = KillerCore.COMMAND_DELAYED;
-        } else if (Intent.ACTION_USER_PRESENT.equals(action)
-                || Intent.ACTION_SCREEN_ON.equals(action)) { // 解锁
+            WifiManager wifiM = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            type = 1;
+        } else if (Intent.ACTION_USER_PRESENT.equals(action)) { // 解锁
             enable = new ArrayList<>(autoDisabledSet);
-            switchSS = /*enable.contains(Settings.getInstance().getSSPackageName()) &&*/ Settings.getInstance().getAutoEnableSS();
+            switchSS = Settings.getInstance().getAutoEnableSS();
+            type = 22;
         }else {
             return;
         }
         Bundle bundle = new Bundle();
         bundle.putBoolean(KillerCore.KEY_ENABLE_SS, switchSS);
+        if(Settings.getInstance().autoSwitchNetwork()){
+            bundle.putInt(NetworkAutoSwitcher.KEY_TYPE, type);
+        }
         KillerCore.queueKiller(context, disable, enable, command, bundle);
     }
 }

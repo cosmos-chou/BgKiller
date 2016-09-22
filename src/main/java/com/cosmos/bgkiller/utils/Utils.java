@@ -1,5 +1,6 @@
 package com.cosmos.bgkiller.utils;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -10,16 +11,23 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
+import android.widget.Toast;
 
 import com.cosmos.bgkiller.BgKillerApplication;
+import com.cosmos.bgkiller.Settings;
 
 import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,6 +54,8 @@ public final class Utils {
 
     public static final String KEY_NORMAL_DISABLED_USER_APPS = "normal_disabled_user_apps";
     public static final String KEY_AUTO_ENABLE_DISABLED_USER_APPS = "auto_enable_disabled_user_apps";
+
+    public static PrintStream sPrintStream;
 
     public static List<PackageInfo> getAllPackageList() {
         return getPackageInfoList(TYPE_ALL);
@@ -222,8 +232,22 @@ public final class Utils {
         return buffer.toString();
     }
 
-    public static void logD(String message) {
+    public synchronized static void logD(String message) {
         Log.e(TAG, message);
+        if(Settings.getInstance().debugMode()){
+            if(sPrintStream == null){
+                try {
+                    sPrintStream = new PrintStream(new FileOutputStream(new File(BgKillerApplication.getsInstance().getFilesDir(), System.currentTimeMillis() + ".log")));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(sPrintStream != null){
+                sPrintStream.println(new Date() + ": " + message) ;
+            }
+        }
+
+        toastDebug(BgKillerApplication.getsInstance(), message);
     }
 
     private static final Map<String, SoftReference<Drawable>> sDrawableCache = new HashMap<>();
@@ -245,4 +269,10 @@ public final class Utils {
     public static String appendWifiInfo(String ssid, String bssid){
         return ssid/* + "_wifi_" + bssid*/;
     }
+    public static void toastDebug(Context context, String message){
+        if(Settings.getInstance().debugMode()){
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
 }
