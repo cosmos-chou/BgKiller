@@ -16,6 +16,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.cosmos.bgkiller.accessibility.AccessibilityMonitor;
 import com.cosmos.bgkiller.utils.Utils;
 
 import java.io.IOException;
@@ -51,6 +52,7 @@ public class BgKillerApplication extends Application {
 
     private void startCoreService() {
         KillerCore.queueKiller(this, null, null, 0);
+        AccessibilityMonitor.beginMonitor(this);
     }
 
     private void registerReceiver(){
